@@ -9,13 +9,13 @@ This project implements a machine learning-based Named Entity Recognition (NER) 
 Clone the project
 
 ```bash
-  git clone https://link-to-project
+  git clone https://github.com/raju2525/BERT_NAMED-ENTITY-RECOGNITION.git
 ```
 
 Go to the project directory
 
 ```bash
-  cd <filename>
+  cd BERT_NAMED-ENTITY-RECOGNITION
 ```
 
 Install dependencies
