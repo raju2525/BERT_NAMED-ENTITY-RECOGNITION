@@ -83,6 +83,6 @@ To run tests, run the following command
 ## Author
 **RAJU BANDAM**
 
-**EMAIL :** rajubandam694@gmail.com"# BERT_NAMED-ENTITY-RECOGNITION" 
+**EMAIL :** rajubandam694@gmail.com
 
 
