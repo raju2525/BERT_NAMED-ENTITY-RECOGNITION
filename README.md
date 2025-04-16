@@ -42,7 +42,7 @@ To run tests, run the following command
 
 ## Screenshots
 
-![App Screenshot](https://via.placeholder.com/screenshots/ss1.png)
+![App Screenshot](https://placehold.jp/screenshots/ss1.png)
 ![App Screenshot](https://via.placeholder.com/468x300?text=App+Screenshot+Here)
 ![App Screenshot](https://via.placeholder.com/468x300?text=App+Screenshot+Here)
 ![App Screenshot](https://via.placeholder.com/468x300?text=App+Screenshot+Here)
