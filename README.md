@@ -5,7 +5,8 @@ This project implements a machine learning-based Named Entity Recognition (NER) 
 
 
 ## Run Locally
-
+- Use python 3.10
+  
 Clone the project
 
 ```bash
