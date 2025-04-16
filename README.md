@@ -75,8 +75,13 @@ To run tests, run the following command
 **OCR:** Tesseract
 
 **Deployment:** AWS EC2 (t3.micro), Nginx, Gunicorn
-
+## AWS Deployment
+- We Deployed our project into AWS Cloud EC2
+- For detailed step by step of deploying your model/project into AWS refer for the pdf file available in project folder
+- 
 ## Author
 **RAJU BANDAM**
 
 **EMAIL :** rajubandam694@gmail.com"# BERT_NAMED-ENTITY-RECOGNITION" 
+
+
