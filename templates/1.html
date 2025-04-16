@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Named Entity Recognition</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        .container {
+            max-width: 700px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin: auto;
+        }
+        h1 {
+            color: #6a0dad;
+        }
+        .input-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        /* Custom file upload styling */
+        .custom-file-upload {
+            display: flex;
+            align-items: center;
+            background-color: #6a0dad;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            white-space: nowrap;
+        }
+        .custom-file-upload input {
+            display: none; /* Hide default file input */
+        }
+        .custom-file-upload i {
+            margin-right: 8px;
+        }
+        .file-name {
+            font-size: 14px;
+            color: #333;
+            margin-left: 10px;
+        }
+        /* Button styles */
+        button {
+            background-color: #6a0dad;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #5a0cab;
+        }
+        /* Textbox hidden by default */
+        #textContainer {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+        }
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            resize: vertical;
+        }
+        .output {
+            text-align: left;
+            background: #f1f1f1;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .entity-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .entity-table th, .entity-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .entity-table th {
+            background-color: #6a0dad;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Named Entity Recognition</h1>
+        <div class="input-container">
+            <label class="custom-file-upload">
+                <i class="fas fa-upload"></i> Choose File
+                <input type="file" id="fileInput" onchange="updateFileName()">
+            </label>
+            <span class="file-name" id="fileName">No file chosen</span>
+            <button onclick="uploadImage()">Upload & Extract</button>
+        </div>
+
+        <div class="input-container">
+            <button onclick="showTextBox()">Enter Text Manually</button>
+        </div>
+
+        <!-- Textbox container (hidden initially) -->
+        <div id="textContainer">
+            <textarea id="textInput" rows="3" placeholder="Enter text..."></textarea>
+            <button id="predictButton" onclick="extractEntities()" style="display: none;">Predict Entities</button>
+        </div>
+
+        <div class="output">
+            <h3>Recognized Entities</h3>
+            <table class="entity-table" id="entityTable">
+                <thead>
+                    <tr><th>Entity Type</th><th>Entities</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function updateFileName() {
+            const fileInput = document.getElementById('fileInput');
+            const fileName = document.getElementById('fileName');
+            if (fileInput.files.length > 0) {
+                fileName.textContent = fileInput.files[0].name;
+            } else {
+                fileName.textContent = "No file chosen";
+            }
+        }
+
+        function uploadImage() {
+            const fileInput = document.getElementById('fileInput');
+            if (!fileInput.files.length) {
+                alert('Please select a file');
+                return;
+            }
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('textInput').value = data.extracted_text;
+                document.getElementById('textContainer').style.display = 'flex'; // Show text box
+                document.getElementById('predictButton').style.display = 'block'; // Show predict button
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function showTextBox() {
+            document.getElementById('textContainer').style.display = 'flex'; // Show text box
+            document.getElementById('predictButton').style.display = 'block'; // Show predict button
+            document.getElementById('textInput').focus();
+        }
+
+        function extractEntities() {
+            const text = document.getElementById('textInput').value;
+            if (!text.trim()) {
+                alert('Enter some text');
+                return;
+            }
+            fetch('/extract_entities', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ text })
+            })
+            .then(response => response.json())
+            .then(data => {
+                displayEntities(data.entities);
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function displayEntities(entities) {
+            const tableBody = document.querySelector('#entityTable tbody');
+            tableBody.innerHTML = '';
+            Object.entries(entities).forEach(([key, values]) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${key}</td><td>${values.join(', ')}</td>`;
+                tableBody.appendChild(row);
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NER Extraction</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            width: 50%;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            color: #4A148C;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f9f9f9;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+        .upload-btn, .extract-btn, .predict-btn {
+            background-color: #673AB7;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        .upload-btn:hover, .extract-btn:hover, .predict-btn:hover {
+            background-color: #512DA8;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .text-area {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .entities-container {
+            text-align: left;
+            margin-top: 20px;
+            display: none;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #673AB7;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Named Entity Recognition (NER) Extraction</h2>
+
+        <!-- Step 1: Choose Input Method -->
+        <div class="section">
+            <h3>Step 1: Select Input Type</h3>
+            <label><input type="radio" name="inputType" value="image" onclick="toggleInput('image')"> Upload Image</label>
+            <label><input type="radio" name="inputType" value="text" onclick="toggleInput('text')"> Enter Text</label>
+        </div>
+
+        <!-- Step 2A: Upload Image -->
+        <div id="uploadSection" class="section" style="display: none;">
+            <h3>Upload an Image</h3>
+            <label for="fileUpload" class="upload-btn">📂 Choose File</label>
+            <input type="file" id="fileUpload" accept="image/*">
+            <p id="fileName" style="margin-top: 10px; font-weight: bold;"></p>
+            <button class="extract-btn" onclick="extractTextFromImage()">Extract Text</button>
+        </div>
+
+        <!-- Step 2B: Enter Text -->
+        <div id="textSection" class="section" style="display: none;">
+            <h3>Enter Text</h3>
+            <textarea id="textInput" class="text-area" placeholder="Enter text for entity extraction..."></textarea>
+        </div>
+
+        <!-- Step 3: Extracted Text Display -->
+        <div id="extractedTextSection" class="section" style="display: none;">
+            <h3>Extracted Text:</h3>
+            <textarea id="extractedText" class="text-area" readonly></textarea>
+        </div>
+
+        <!-- Step 4: Select Model (Appears after Text is Available) -->
+        <div class="section" id="modelSelectionSection" style="display: none;">
+            <h3>Step 4: Select NER Model</h3>
+            <label><input type="radio" name="nerModel" value="bert" checked> BERT Model</label>
+            <label><input type="radio" name="nerModel" value="huggingface"> Hugging Face Model</label>
+        </div>
+
+        <!-- Step 5: Predict Entities -->
+        <button class="predict-btn" id="predictBtn" onclick="extractEntities()" style="display: none;">Predict Entities</button>
+
+        <!-- Display Extracted Entities -->
+        <div class="entities-container" id="entitiesContainer">
+            <h3>Extracted Entities:</h3>
+            <table id="entitiesTable">
+                <thead>
+                    <tr>
+                        <th>Entity Type</th>
+                        <th>Words</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function toggleInput(type) {
+            document.getElementById('uploadSection').style.display = type === 'image' ? 'block' : 'none';
+            document.getElementById('textSection').style.display = type === 'text' ? 'block' : 'none';
+            document.getElementById('extractedTextSection').style.display = 'none';
+            document.getElementById('modelSelectionSection').style.display = 'none';
+            document.getElementById('predictBtn').style.display = 'none';
+            document.getElementById('entitiesContainer').style.display = 'none';
+
+            if (type === 'text') {
+                document.getElementById('modelSelectionSection').style.display = 'block';
+                document.getElementById('predictBtn').style.display = 'block';
+            }
+        }
+
+        document.getElementById('fileUpload').addEventListener('change', function() {
+            const fileName = this.files.length > 0 ? this.files[0].name : "No file chosen";
+            document.getElementById('fileName').innerText = fileName;
+        });
+
+        function extractTextFromImage() {
+            const file = document.getElementById('fileUpload').files[0];
+            if (!file) {
+                alert('Please select an image file.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.extracted_text) {
+                    document.getElementById('extractedText').value = data.extracted_text;
+                    document.getElementById('extractedTextSection').style.display = 'block';
+                    document.getElementById('modelSelectionSection').style.display = 'block';
+                    document.getElementById('predictBtn').style.display = 'block';
+                } else {
+                    alert('Failed to extract text.');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function extractEntities() {
+            const text = document.getElementById('extractedText').value || document.getElementById('textInput').value;
+            if (!text.trim()) {
+                alert('Enter or extract some text first.');
+                return;
+            }
+
+            const selectedModel = document.querySelector('input[name="nerModel"]:checked').value; 
+
+            fetch('/extract_entities', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ text, model: selectedModel })  
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('entitiesContainer').style.display = "block";
+                const tableBody = document.getElementById('entitiesTable').getElementsByTagName('tbody')[0];
+                tableBody.innerHTML = ""; 
+
+                for (const [entityType, words] of Object.entries(data.entities)) {
+                    const row = tableBody.insertRow();
+                    row.insertCell(0).innerText = entityType;
+                    row.insertCell(1).innerText = words.join(', ');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+
+</body>
+</html>

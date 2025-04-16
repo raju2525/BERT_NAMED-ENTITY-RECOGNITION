@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Named Entity Recognition (NER)</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            width: 100%;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.15);
+        }
+        h2 {
+            color: #6A1B9A;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            background: #fafafa;
+            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+        }
+        .btn {
+            background-color: #7E57C2;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            background-color: #5E35B1;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .text-area {
+            width: 100%;
+            height: 120px;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .entities-container {
+            text-align: left;
+            margin-top: 20px;
+            display: none;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #7E57C2;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Named Entity Recognition (NER)</h2>
+
+        <!-- Step 1: Choose Input Type -->
+        <div class="section">
+            <h3>Step 1: Select Input Method</h3>
+            <label><input type="radio" name="inputMethod" value="image" onclick="toggleInput('image')"> Upload Image</label>
+            <label><input type="radio" name="inputMethod" value="text" onclick="toggleInput('text')"> Enter Text</label>
+        </div>
+
+        <!-- Step 2A: Upload Image -->
+        <div id="uploadSection" class="section" style="display: none;">
+            <h3>Upload an Image</h3>
+            <div style="display: flex; align-items: center; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                <div>
+                    <label for="fileUpload" class="btn">📂 Select File</label>
+                    <input type="file" id="fileUpload" accept="image/*">
+                    <p id="fileName" style="margin-top: 10px; font-weight: bold;"></p>
+                    <button class="btn" onclick="extractTextFromImage()">Extract Text</button>
+                </div>
+            
+                <div>
+                    <img id="previewImage" src="" alt="Selected Image" style="max-width: 250px; max-height: 250px; display: none; border: 1px solid #ccc; border-radius: 8px;">
+                </div>
+            </div>
+            
+        </div>
+
+        <!-- Step 2B: Enter Text -->
+        <div id="textSection" class="section" style="display: none;">
+            <h3>Enter Text</h3>
+            <textarea id="textInput" class="text-area" placeholder="Type or paste your text here..."></textarea>
+        </div>
+
+        <!-- Step 3: Show Extracted Text -->
+        <div id="extractedTextSection" class="section" style="display: none;">
+            <h3>Extracted Text</h3>
+            <textarea id="extractedText" class="text-area" readonly></textarea>
+        </div>
+
+        <!-- Step 4: Choose Model -->
+        <div id="modelSelectionSection" class="section" style="display: none;">
+            <h3>Step 4: Select NER Model</h3>
+            <label><input type="radio" name="nerModel" value="bert" checked> BERT Model</label>
+            <label><input type="radio" name="nerModel" value="huggingface"> Pre-Trained Transformers Model</label>
+        </div>
+
+        <!-- Step 5: Predict Entities -->
+        <button class="btn" id="predictBtn" onclick="extractEntities()" style="display: none;">Extract Entities</button>
+
+        <!-- Display Entities -->
+        <div class="entities-container" id="entitiesContainer">
+            <h3>Extracted Entities</h3>
+            <table id="entitiesTable">
+                <thead>
+                    <tr>
+                        <th>Entity Type</th>
+                        <th>Words</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        window.onload = function () {
+            function toggleInput(type) {
+                document.getElementById('uploadSection').style.display = type === 'image' ? 'block' : 'none';
+                document.getElementById('textSection').style.display = type === 'text' ? 'block' : 'none';
+                document.getElementById('extractedTextSection').style.display = 'none';
+                document.getElementById('modelSelectionSection').style.display = 'none';
+                document.getElementById('predictBtn').style.display = 'none';
+                document.getElementById('entitiesContainer').style.display = 'none';
+    
+                if (type === 'text') {
+                    document.getElementById('modelSelectionSection').style.display = 'block';
+                    document.getElementById('predictBtn').style.display = 'block';
+                }
+            }
+    
+            window.toggleInput = toggleInput;
+    
+            document.getElementById('fileUpload').addEventListener('change', function () {
+                const file = this.files[0];
+                const fileName = file ? file.name : "No file selected";
+                document.getElementById('fileName').innerText = fileName;
+    
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        const img = document.getElementById('previewImage');
+                        img.src = e.target.result;
+                        img.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    document.getElementById('previewImage').style.display = 'none';
+                }
+            });
+    
+            window.extractTextFromImage = function () {
+                const file = document.getElementById('fileUpload').files[0];
+                if (!file) {
+                    alert('Please select an image file.');
+                    return;
+                }
+    
+                const formData = new FormData();
+                formData.append('file', file);
+    
+                fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.extracted_text) {
+                            document.getElementById('extractedText').value = data.extracted_text;
+                            document.getElementById('extractedTextSection').style.display = 'block';
+                            document.getElementById('modelSelectionSection').style.display = 'block';
+                            document.getElementById('predictBtn').style.display = 'block';
+                        } else {
+                            alert('Failed to extract text.');
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            };
+    
+            window.extractEntities = function () {
+                const text = document.getElementById('extractedText').value || document.getElementById('textInput').value;
+                if (!text.trim()) {
+                    alert('Please enter or extract some text first.');
+                    return;
+                }
+    
+                const selectedModel = document.querySelector('input[name="nerModel"]:checked').value;
+    
+                fetch('/extract_entities', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text, model: selectedModel })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('entitiesContainer').style.display = "block";
+                        const tableBody = document.getElementById('entitiesTable').getElementsByTagName('tbody')[0];
+                        tableBody.innerHTML = "";
+    
+                        for (const [entityType, words] of Object.entries(data.entities)) {
+                            const row = tableBody.insertRow();
+                            row.insertCell(0).innerText = entityType;
+                            row.insertCell(1).innerText = words.join(', ');
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            };
+        };
+    </script>
+    
+
+</body>
+</html>

@@ -1,0 +1,6 @@
+flask==2.3.3
+transformers==4.34.0
+torch==2.0.1
+opencv-python==4.8.0.76
+pytesseract==0.3.10
+gunicorn==21.2.0
