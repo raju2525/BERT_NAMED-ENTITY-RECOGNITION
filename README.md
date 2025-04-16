@@ -42,7 +42,9 @@ To run tests, run the following command
 
 ## Screenshots
 
-![App Screenshot](https://placehold.jp/BERT_NAMED-ENTITY-RECOGNITION/screenshots/ss1.png)
+
+![App Screenshot](https://raw.githubusercontent.com/raju2525/BERT_NAMED-ENTITY-RECOGNITION/screenshots/ss1.png)
+
 ![App Screenshot](https://via.placeholder.com/468x300?text=App+Screenshot+Here)
 ![App Screenshot](https://via.placeholder.com/468x300?text=App+Screenshot+Here)
 ![App Screenshot](https://via.placeholder.com/468x300?text=App+Screenshot+Here)
